@@ -10,7 +10,7 @@
 - can **pop out into a floating always-on-top window**, so it never covers the slides,
 - can show **movie-style subtitles on the video itself** (🎬), bilingual or one language, and also in full screen. You can also shrink the panel to a **one-line subtitle bar** (▭).
 
-[中文说明](#中文说明) · **[Install page →](https://Dr1ll1.github.io/lecture-subtitle-follow/)** · [VTT file translator](https://Dr1ll1.github.io/lecture-subtitle-follow/translator.html)
+[中文说明](#中文说明) · **[Install page →](https://1220H.github.io/lecture-subtitle-follow/)** · [VTT file translator](https://1220H.github.io/lecture-subtitle-follow/translator.html)
 
 > Unofficial. Not affiliated with or endorsed by Echo360.
 
@@ -22,7 +22,7 @@ It is a **reading view**: you see the sentences before and after the current one
 
 ## Install
 
-Open the **[install page](https://Dr1ll1.github.io/lecture-subtitle-follow/)** and drag the red button onto your bookmarks bar. Show the bar with ⌘⇧B on Mac or Ctrl+Shift+B on Windows. You don't need to install any extension.
+Open the **[install page](https://1220H.github.io/lecture-subtitle-follow/)** and drag the red button onto your bookmarks bar. Show the bar with ⌘⇧B on Mac or Ctrl+Shift+B on Windows. You don't need to install any extension.
 
 ## Use
 
@@ -40,7 +40,7 @@ On other sites, load a `.vtt` / `.srt` file with **📂**. Clicking the bookmark
 
 ## VTT file translator
 
-[`docs/translator.html`](https://Dr1ll1.github.io/lecture-subtitle-follow/translator.html) is a standalone page for translating subtitle files. It works with any OpenAI-compatible API, supports 17 target languages and exports bilingual or translation-only VTT. Use it when you have a file but no video page.
+[`docs/translator.html`](https://1220H.github.io/lecture-subtitle-follow/translator.html) is a standalone page for translating subtitle files. It works with any OpenAI-compatible API, supports 17 target languages and exports bilingual or translation-only VTT. Use it when you have a file but no video page.
 
 ## Privacy
 
@@ -87,6 +87,6 @@ MIT
 
 **免费翻译和 AI 翻译怎么选：** Google 免费翻译零门槛，日常句子没问题，但学科术语容易翻错。比如在一节计量经济学课里，它把 treatment effect 翻成了「治疗效果」，把 matching 翻成了「搭配」。AI 大模型知道课程名称，会翻成「处理效应」和「匹配」。没接触过 API 的同学，直接用免费翻译就行。
 
-**安装：** 打开[安装页](https://Dr1ll1.github.io/lecture-subtitle-follow/)，把红色按钮拖到书签栏。不需要安装任何浏览器扩展。
+**安装：** 打开[安装页](https://1220H.github.io/lecture-subtitle-follow/)，把红色按钮拖到书签栏。不需要安装任何浏览器扩展。
 
 **隐私：** 没有服务器，也没有任何统计。字幕、译文、设置和 API Key 都只保存在你自己的浏览器里，文本只会发送给你选择的翻译服务。

@@ -13,7 +13,7 @@ import pathlib
 import re
 import urllib.parse
 
-REPO_URL = "https://github.com/Dr1ll1/lecture-subtitle-follow"
+REPO_URL = "https://github.com/1220H/lecture-subtitle-follow"
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 

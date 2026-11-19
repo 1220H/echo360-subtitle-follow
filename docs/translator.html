@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VTT Subtitle Translator</title>
+<style>
+  :root{--bg:#faf7f0;--card:#fffdf8;--ink:#2a2620;--mute:#6f675a;--line:#e6dfcf;--acc:#c8102e;--hl:#fff1c9;--ok:#2e7d4f}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Segoe UI",sans-serif}
+  main{max-width:920px;margin:0 auto;padding:36px 22px 60px}
+  .top{display:flex;align-items:flex-start;gap:12px}
+  .top>div{flex:1}
+  h1{font-size:26px;margin:0 0 4px}
+  .sub{color:var(--mute);margin:0 0 24px;font-size:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+  .card h3{margin:0 0 12px;font-size:15px}
+  .grid{display:grid;grid-template-columns:150px 1fr;gap:10px 12px;align-items:center}
+  @media (max-width:620px){.grid{grid-template-columns:1fr}.hint{grid-column:1!important}}
+  label{font-size:13.5px;color:var(--mute)}
+  input[type=text],input[type=password],select,textarea{font:14px -apple-system,"Segoe UI",sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;width:100%;color:var(--ink)}
+  textarea{height:60px;resize:vertical}
+  .hint{font-size:12.5px;color:var(--mute);grid-column:2}
+  button{font:14px -apple-system,"Segoe UI",sans-serif;padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--ink)}
+  button:hover{background:var(--hl)}
+  button.primary{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+  button.primary:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  #lang{width:auto;font-size:13px;padding:5px 8px}
+  #drop{border:2px dashed var(--line);border-radius:12px;padding:26px;text-align:center;color:var(--mute);cursor:pointer;transition:background .15s}
+  #drop.over{background:var(--hl);border-color:var(--acc)}
+  #drop b{color:var(--ink)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .stats{font-size:13.5px;color:var(--mute)}
+  .stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .bar{height:8px;background:#efe9da;border-radius:99px;overflow:hidden;margin:12px 0 6px}
+  .bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
+  #err{color:var(--acc);font-size:13.5px;white-space:pre-wrap;margin-top:8px}
+  #preview{max-height:420px;overflow:auto;border-top:1px solid var(--line);margin-top:12px}
+  .it{display:grid;grid-template-columns:54px 1fr;gap:8px;padding:8px 2px;border-bottom:1px solid #f1ecdf;font-size:14px}
+  .it .t{color:#b5ab95;font-size:12px;font-variant-numeric:tabular-nums;padding-top:2px}
+  .it .en{color:var(--mute);font-size:13px}
+  .it .zh{color:var(--ink)}
+  .it .zh.pending{color:#c9c0ac}
+  .it .zh.fail{color:var(--acc)}
+  .radio{display:flex;gap:16px;font-size:14px}
+  .radio label{color:var(--ink)}
+  footer{font-size:12.5px;color:var(--mute);text-align:center;margin-top:26px}
+  footer a{color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <h1 data-i="h1"></h1>
+      <p class="sub" data-i="sub"></p>
+    </div>
+    <select id="lang" aria-label="Language"><option value="en">English</option><option value="zh">中文</option></select>
+  </div>
+
+  <div class="card">
+    <h3 data-i="s1"></h3>
+    <div class="grid">
+      <label data-i="provider"></label>
+      <select id="preset">
+        <option value="https://api.openai.com/v1|">OpenAI</option>
+        <option value="https://api.deepseek.com/v1|deepseek-chat">DeepSeek</option>
+        <option value="https://generativelanguage.googleapis.com/v1beta/openai|">Google Gemini</option>
+        <option value="https://openrouter.ai/api/v1|">OpenRouter</option>
+        <option value="https://dashscope.aliyuncs.com/compatible-mode/v1|qwen-plus">Alibaba Cloud Model Studio · 阿里云百炼</option>
+        <option value="https://api.siliconflow.cn/v1|">SiliconFlow · 硅基流动</option>
+        <option value="https://open.bigmodel.cn/api/paas/v4|">Zhipu GLM · 智谱</option>
+        <option value="custom|" data-i="custom"></option>
+      </select>
+      <label data-i="base"></label>
+      <input type="text" id="base" placeholder="https://api.example.com/v1">
+      <span class="hint" data-i="baseHint"></span>
+      <label>API Key</label>
+      <input type="password" id="key" placeholder="sk-..." autocomplete="off">
+      <label data-i="model"></label>
+      <input type="text" id="model">
+      <span class="hint" data-i="modelHint"></span>
+      <label data-i="target"></label>
+      <select id="target">
+        <option value="Simplified Chinese|zh">简体中文</option>
+        <option value="Traditional Chinese|zh-Hant">繁體中文</option>
+        <option value="English|en">English</option>
+        <option value="Japanese|ja">日本語</option>
+        <option value="Korean|ko">한국어</option>
+        <option value="Vietnamese|vi">Tiếng Việt</option>
+        <option value="Thai|th">ไทย</option>
+        <option value="Indonesian|id">Bahasa Indonesia</option>
+        <option value="Hindi|hi">हिन्दी</option>
+        <option value="Arabic|ar">العربية</option>
+        <option value="Turkish|tr">Türkçe</option>
+        <option value="Spanish|es">Español</option>
+        <option value="Portuguese|pt">Português</option>
+        <option value="French|fr">Français</option>
+        <option value="German|de">Deutsch</option>
+        <option value="Italian|it">Italiano</option>
+        <option value="Russian|ru">Русский</option>
+      </select>
+      <label data-i="notes"></label>
+      <textarea id="glossary"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 data-i="s2"></h3>
+    <div id="drop"><span data-i="drop"></span><input type="file" id="file" accept=".vtt,.srt" style="display:none"></div>
+    <div class="row" style="margin-top:12px">
+      <span class="stats" id="info"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 data-i="s3"></h3>
+    <div class="row">
+      <button class="primary" id="go" disabled></button>
+      <button id="stop" disabled data-i="stop"></button>
+      <button id="retry" style="display:none" data-i="retry"></button>
+      <span style="flex:1"></span>
+      <div class="radio">
+        <label><input type="radio" name="mode" value="bi" checked> <span data-i="bi"></span></label>
+        <label><input type="radio" name="mode" value="tr"> <span data-i="only"></span></label>
+      </div>
+      <button id="dl" disabled data-i="dl"></button>
+    </div>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="stats" id="stat">—</div>
+    <div id="err"></div>
+    <div id="preview"></div>
+  </div>
+  <footer data-i="footer"></footer>
+</main>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var LS = function(k, v){ try{ if(v===undefined) return localStorage.getItem('vtttr:'+k); localStorage.setItem('vtttr:'+k, v);}catch(e){ return null; } };
+
+  /* ---------- i18n ---------- */
+  var I18N = {
+    en: {
+      h1:'VTT Subtitle Translator',
+      sub:'Translate lecture subtitles (VTT/SRT) with your own AI API key and get a bilingual VTT with the original timestamps. Caption fragments are merged into full sentences first, so translations read naturally. Everything runs in your browser; text is sent only to the API you enter.',
+      s1:'① API settings (saved in this browser only)', provider:'Provider', custom:'Custom (any OpenAI-compatible API)', base:'API base URL',
+      baseHint:'Up to /v1 is enough — /chat/completions is added automatically.', model:'Model', modelHint:'Any chat model your account can use.',
+      target:'Translate into', notes:'Course / glossary notes', notesPh:'Optional. e.g. Econometrics course. causal inference, matching, treatment effect…',
+      s2:'② Subtitle file', drop:'Drop a <b>.vtt</b> or <b>.srt</b> file here, or <b>click to choose</b>', none:'No file selected yet',
+      info:function(n,c,s,w,d){ return '📄 <b>'+n+'</b> · '+c+' cues → <b>'+s+'</b> sentences · ~'+w+' words · '+d; },
+      noTiming:'No timestamps found. Please use a VTT or SRT file.',
+      s3:'③ Translate & export', start:'Start', cont:'Continue', redo:'Translate again', stop:'Stop', retry:'Retry failed lines',
+      bi:'Bilingual', only:'Translation only', dl:'⬇ Download VTT',
+      stat:function(d,n,f,p,c){ return 'Progress <b>'+d+'/'+n+'</b>'+(f?' · failed <b style="color:var(--acc)">'+f+'</b>':'')+' · tokens: in <b>'+p.toLocaleString()+'</b> + out <b>'+c.toLocaleString()+'</b> = <b>'+(p+c).toLocaleString()+'</b>'; },
+      fail:'failed', needCfg:'Please fill in the API base URL, key and model in ① first.',
+      net:function(m){ return 'Could not reach the API ('+m+'). Check the URL and your network — or this provider may not allow calls from a browser (CORS).'; },
+      apiErr:function(s,m){ return 'API error '+s+': '+m; }, busy:'The API kept returning 429/5xx. Try "Retry failed lines" later.',
+      done:'✅ All done — click "Download VTT".',
+      footer:'Part of <a href="./">Subtitle Follow</a> · open source · not affiliated with Echo360'
+    },
+    zh: {
+      h1:'VTT 字幕翻译器',
+      sub:'用你自己的 AI API，把课程字幕（VTT/SRT）翻译成保留原时间轴的双语 VTT。会先把碎片字幕合并成整句再翻译，读起来更通顺。全程在浏览器里运行，文本只会发送到你填写的 API。',
+      s1:'① API 设置（只保存在这个浏览器里）', provider:'服务商', custom:'自定义（任何 OpenAI 兼容接口）', base:'API 地址',
+      baseHint:'填到 /v1 为止即可，会自动加上 /chat/completions。和你在沉浸式翻译等工具里填的一样。', model:'模型名', modelHint:'填你账号里能用的对话模型名。',
+      target:'翻译成', notes:'课程 / 术语提示', notesPh:'可选。例如：计量经济学课程。causal inference=因果推断；matching=匹配；treatment effect=处理效应',
+      s2:'② 选择字幕文件', drop:'把 <b>.vtt</b> 或 <b>.srt</b> 文件拖到这里，或 <b>点击选择</b>', none:'还没有选择文件',
+      info:function(n,c,s,w,d){ return '📄 <b>'+n+'</b> · '+c+' 条原字幕 → 合并成 <b>'+s+'</b> 句 · 约 '+w+' 个单词 · 时长 '+d; },
+      noTiming:'这个文件里没有找到时间轴，请确认是 VTT 或 SRT 格式。',
+      s3:'③ 翻译并导出', start:'开始翻译', cont:'继续翻译', redo:'重新翻译全部', stop:'停止', retry:'重试失败的句子',
+      bi:'双语', only:'仅译文', dl:'⬇ 下载 VTT',
+      stat:function(d,n,f,p,c){ return '进度 <b>'+d+'/'+n+'</b>'+(f?' · 失败 <b style="color:var(--acc)">'+f+'</b>':'')+' · token 用量：输入 <b>'+p.toLocaleString()+'</b> + 输出 <b>'+c.toLocaleString()+'</b> = <b>'+(p+c).toLocaleString()+'</b>'; },
+      fail:'翻译失败', needCfg:'请先在 ① 里填好 API 地址、Key 和模型名。',
+      net:function(m){ return '连不上 API（'+m+'）。可能是地址填错、网络问题，或这个服务商不允许浏览器直接调用（CORS）。'; },
+      apiErr:function(s,m){ return 'API 返回错误 '+s+'：'+m; }, busy:'API 一直繁忙（429/5xx），请稍后点「重试失败的句子」。',
+      done:'✅ 全部翻译完成，点「下载 VTT」保存。',
+      footer:'属于 <a href="./">字幕跟随 Subtitle Follow</a> 项目 · 开源 · 与 Echo360 官方无关'
+    }
+  };
+  var lang = LS('ui') || (/^zh/i.test(navigator.language||'') ? 'zh' : 'en');
+  var L = I18N[lang];
+  function applyLang(){
+    L = I18N[lang]; document.documentElement.lang = lang==='zh'?'zh-CN':'en';
+    $('lang').value = lang; document.title = L.h1;
+    [].forEach.call(document.querySelectorAll('[data-i]'), function(el){ var v=L[el.getAttribute('data-i')]; if(typeof v==='string') el.innerHTML=v; });
+    $('glossary').placeholder = L.notesPh;
+    if(!S.items.length) $('info').textContent = L.none; else showInfo();
+    renderPreview(); progress(); setGoLabel();
+  }
+  $('lang').addEventListener('change', function(){ lang=this.value; LS('ui',lang); applyLang(); });
+
+  /* ---------- settings ---------- */
+  var preset=$('preset'), base=$('base'), key=$('key'), model=$('model'), glossary=$('glossary'), target=$('target');
+  function applyPreset(){
+    var v=preset.value.split('|');
+    if(v[0]!=='custom') base.value=v[0];
+    if(v[1]) model.value=v[1];
+  }
+  preset.addEventListener('change', function(){ applyPreset(); save(); });
+  if(LS('preset')){ preset.value=LS('preset'); base.value=LS('base')||''; model.value=LS('model')||''; key.value=LS('key')||''; glossary.value=LS('glossary')||''; }
+  else { if(lang==='zh') preset.value='https://api.deepseek.com/v1|deepseek-chat'; applyPreset(); }
+  if(LS('target')) target.value=LS('target'); else if(lang!=='zh') target.value='English|en';
+  function save(){ LS('preset',preset.value); LS('base',base.value.trim()); LS('model',model.value.trim()); LS('key',key.value.trim()); LS('glossary',glossary.value); LS('target',target.value); }
+  [base,key,model,glossary,target].forEach(function(el){ el.addEventListener('change', save); });
+
+  /* ---------- parse & merge ---------- */
+  function ts(s){ var m=s.trim().replace(',', '.').split(':'), sec=0; for(var i=0;i<m.length;i++) sec=sec*60+parseFloat(m[i]); return sec; }
+  function parse(text){
+    text=text.replace(/\r/g,'').replace(/^﻿/,'');
+    var out=[];
+    text.split(/\n\s*\n/).forEach(function(b){
+      var lines=b.split('\n'), k=-1;
+      for(var i=0;i<lines.length;i++) if(lines[i].indexOf('-->')>-1){k=i;break;}
+      if(k<0) return;
+      var parts=lines[k].split('-->');
+      var body=lines.slice(k+1).map(function(l){return l.replace(/<[^>]+>/g,'').trim();}).filter(Boolean);
+      if(!body.length) return;
+      out.push({s:ts(parts[0]), e:ts(parts[1].trim().split(/\s+/)[0]), text:body.join(' ')});
+    });
+    out.sort(function(a,b){return a.s-b.s;});
+    return out;
+  }
+  function merge(cues){
+    var out=[], cur=null;
+    cues.forEach(function(c){
+      if(cur && c.s-cur.e>2.5){ out.push(cur); cur=null; }
+      if(!cur) cur={s:c.s,e:c.e,en:c.text}; else { cur.en+=' '+c.text; cur.e=c.e; }
+      if(/[.?!。？！]["')\]」]?$/.test(c.text) || cur.en.length>260){ out.push(cur); cur=null; }
+    });
+    if(cur) out.push(cur);
+    return out;
+  }
+  function vttTime(t){
+    var ms=Math.round(t*1000), h=Math.floor(ms/3600000); ms%=3600000;
+    var m=Math.floor(ms/60000); ms%=60000; var s=Math.floor(ms/1000); ms%=1000;
+    var p=function(n,w){ n=String(n); while(n.length<w) n='0'+n; return n; };
+    return p(h,2)+':'+p(m,2)+':'+p(s,2)+'.'+p(ms,3);
+  }
+  function mmss(t){ t=Math.floor(t); return Math.floor(t/60)+':'+String(t%60).padStart(2,'0'); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  /* ---------- file ---------- */
+  var S={ name:'', items:[], cues:0, running:false, abort:null, usage:{p:0,c:0} };
+  var drop=$('drop'), fileIn=$('file');
+  drop.addEventListener('click', function(){ fileIn.click(); });
+  fileIn.addEventListener('change', function(e){ if(e.target.files[0]) load(e.target.files[0]); fileIn.value=''; });
+  ['dragover','dragenter'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); }); });
+  drop.addEventListener('dragleave', function(){ drop.classList.remove('over'); });
+  drop.addEventListener('drop', function(e){ e.preventDefault(); drop.classList.remove('over'); if(e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); });
+
+  function showInfo(){
+    var words=S.items.reduce(function(n,x){ return n+x.en.split(/\s+/).length; },0);
+    $('info').innerHTML=L.info(esc(S.file), S.cues, S.items.length, words.toLocaleString(), mmss(S.items[S.items.length-1].e));
+  }
+  function load(f){
+    var r=new FileReader();
+    r.onload=function(){
+      var cues=parse(r.result);
+      if(!cues.length){ $('info').textContent=L.noTiming; return; }
+      S.file=f.name; S.name=f.name.replace(/\.(vtt|srt)$/i,''); S.cues=cues.length;
+      S.items=merge(cues).map(function(x){ return {s:x.s,e:x.e,en:x.en,zh:null,fail:false}; });
+      S.usage={p:0,c:0};
+      showInfo();
+      $('go').disabled=false; $('dl').disabled=true; $('retry').style.display='none'; $('err').textContent='';
+      renderPreview(); progress(); setGoLabel();
+    };
+    r.readAsText(f,'utf-8');
+  }
+
+  function renderPreview(){
+    var h='';
+    S.items.forEach(function(x,i){
+      h+='<div class="it"><div class="t">'+mmss(x.s)+'</div><div><div class="en">'+esc(x.en)+'</div><div class="zh '+(x.zh?'':(x.fail?'fail':'pending'))+'" id="zh'+i+'">'+(x.zh?esc(x.zh):(x.fail?L.fail:'…'))+'</div></div></div>';
+    });
+    $('preview').innerHTML=h;
+  }
+  function setZh(i){
+    var el=$('zh'+i), x=S.items[i]; if(!el) return;
+    el.className='zh '+(x.zh?'':(x.fail?'fail':'pending'));
+    el.textContent=x.zh?x.zh:(x.fail?L.fail:'…');
+  }
+  function progress(){
+    var n=S.items.length, done=S.items.filter(function(x){return x.zh;}).length, fail=S.items.filter(function(x){return x.fail;}).length;
+    $('prog').style.width=(n?done/n*100:0)+'%';
+    $('stat').innerHTML=n?L.stat(done,n,fail,S.usage.p,S.usage.c):'—';
+    $('dl').disabled=!done;
+  }
+  function setGoLabel(){
+    var left=S.items.filter(function(x){return !x.zh;}).length, done=S.items.length-left;
+    $('go').textContent = !S.items.length||!done ? L.start : (left ? L.cont : L.redo);
+  }
+
+  /* ---------- translate ---------- */
+  function sysPrompt(){
+    var g=glossary.value.trim(), tl=target.value.split('|')[0];
+    return 'You translate university lecture transcripts into natural, fluent '+tl+' for an international student.\n'+
+      'Input: a JSON object {"context": [...previous sentences, for reference only], "sentences": [...]}.\n'+
+      'Output: ONLY a JSON array of strings with exactly the same number of items as "sentences", each being the '+tl+' translation of the sentence at the same position. No explanations, no markdown.\n'+
+      'Rules: do not merge or split items; drop filler words (um, uh, you know) and false starts; keep numbers, formulas and variable names; translate academic terms accurately.'+
+      (g?'\nCourse notes / glossary from the student:\n'+g:'');
+  }
+  function extractArray(txt){
+    txt=String(txt||'').replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+    try{ var j=JSON.parse(txt); if(Array.isArray(j)) return j; if(j&&typeof j==='object'){ for(var k in j) if(Array.isArray(j[k])) return j[k]; } }catch(e){}
+    var a=txt.indexOf('['), b=txt.lastIndexOf(']');
+    if(a>-1&&b>a){ try{ var j2=JSON.parse(txt.slice(a,b+1)); if(Array.isArray(j2)) return j2; }catch(e){} }
+    return null;
+  }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+
+  async function callAPI(idxs){
+    var url=base.value.trim().replace(/\/+$/,'');
+    if(!/\/chat\/completions$/.test(url)) url+='/chat/completions';
+    var ctx=[]; for(var k=Math.max(0,idxs[0]-2);k<idxs[0];k++) ctx.push(S.items[k].en);
+    var body={ model:model.value.trim(), temperature:0.3,
+      messages:[{role:'system',content:sysPrompt()},{role:'user',content:JSON.stringify({context:ctx,sentences:idxs.map(function(i){return S.items[i].en;})})}] };
+    for(var attempt=0;attempt<4;attempt++){
+      var res;
+      try{
+        res=await fetch(url,{method:'POST',signal:S.abort.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.value.trim()},body:JSON.stringify(body)});
+      }catch(e){
+        if(e.name==='AbortError') throw e;
+        var ne=new Error(L.net(e.message)); ne.fatal=true; throw ne;
+      }
+      if(res.status===429||res.status>=500){ await sleep(2000*(attempt+1)); continue; }
+      var data=await res.json().catch(function(){ return null; });
+      if(!res.ok){ var m=data&&data.error&&(data.error.message||data.error)||res.statusText; var err=new Error(L.apiErr(res.status,m)); err.fatal=(res.status===401||res.status===403||res.status===404||res.status===400); throw err; }
+      if(data&&data.usage){ S.usage.p+=data.usage.prompt_tokens||0; S.usage.c+=data.usage.completion_tokens||0; }
+      var content=data&&data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content;
+      return extractArray(content);
+    }
+    throw new Error(L.busy);
+  }
+
+  async function translateBatch(idxs, depth){
+    if(!S.running) return;
+    var arr;
+    try{ arr=await callAPI(idxs); }
+    catch(e){ if(e.name==='AbortError') return; if(e.fatal) throw e; arr=null; $('err').textContent=e.message; }
+    if(arr && arr.length===idxs.length){
+      idxs.forEach(function(i,k){ S.items[i].zh=String(arr[k]).trim(); S.items[i].fail=false; setZh(i); });
+      progress(); return;
+    }
+    if(idxs.length>1 && depth<4){
+      var h=Math.ceil(idxs.length/2);
+      await translateBatch(idxs.slice(0,h), depth+1);
+      await translateBatch(idxs.slice(h), depth+1);
+      return;
+    }
+    idxs.forEach(function(i){ S.items[i].fail=true; setZh(i); }); progress();
+  }
+
+  function makeBatches(){
+    var todo=[]; S.items.forEach(function(x,i){ if(!x.zh) todo.push(i); });
+    var batches=[], cur=[], len=0;
+    todo.forEach(function(i){
+      var l=S.items[i].en.length;
+      if(cur.length && (len+l>2500 || cur.length>=30 || i!==cur[cur.length-1]+1)){ batches.push(cur); cur=[]; len=0; }
+      cur.push(i); len+=l;
+    });
+    if(cur.length) batches.push(cur);
+    return batches;
+  }
+
+  async function run(){
+    save();
+    if(!base.value.trim()||!key.value.trim()||!model.value.trim()){ $('err').textContent=L.needCfg; return; }
+    S.items.forEach(function(x,i){ if(x.fail){ x.fail=false; setZh(i); } });
+    S.running=true; S.abort=new AbortController();
+    $('go').disabled=true; $('stop').disabled=false; $('retry').style.display='none'; $('err').textContent='';
+    var queue=makeBatches(), workers=[];
+    var worker=async function(){ while(S.running && queue.length){ await translateBatch(queue.shift(),0); } };
+    try{
+      for(var w=0;w<3;w++) workers.push(worker());
+      await Promise.all(workers);
+    }catch(e){
+      S.running=false; S.abort.abort(); $('err').textContent=e.message;
+    }
+    S.running=false; $('stop').disabled=true; $('go').disabled=false;
+    var left=S.items.filter(function(x){return !x.zh;}).length;
+    setGoLabel();
+    $('retry').style.display=S.items.some(function(x){return x.fail;})?'':'none';
+    if(!left && !$('err').textContent) $('err').innerHTML='<span style="color:var(--ok)">'+L.done+'</span>';
+    progress();
+  }
+
+  $('go').addEventListener('click', function(){
+    if(!S.items.some(function(x){return !x.zh;})){ S.items.forEach(function(x,i){ x.zh=null; x.fail=false; setZh(i); }); S.usage={p:0,c:0}; }
+    run();
+  });
+  $('retry').addEventListener('click', run);
+  $('stop').addEventListener('click', function(){ S.running=false; if(S.abort) S.abort.abort(); });
+
+  /* ---------- export ---------- */
+  $('dl').addEventListener('click', function(){
+    var mode=document.querySelector('input[name=mode]:checked').value;
+    var code=target.value.split('|')[1];
+    var out='WEBVTT\n\n';
+    S.items.forEach(function(x,i){
+      var lines = mode==='tr' ? [x.zh||x.en] : (x.zh ? [x.en, x.zh] : [x.en]);
+      out+=(i+1)+'\n'+vttTime(x.s)+' --> '+vttTime(x.e)+'\n'+lines.join('\n')+'\n\n';
+    });
+    var blob=new Blob([out],{type:'text/vtt;charset=utf-8'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=S.name+(mode==='tr'?'.'+code:'.'+code+'-bilingual')+'.vtt';
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  });
+
+  applyLang();
+})();
+</script>
+</body>
+</html>

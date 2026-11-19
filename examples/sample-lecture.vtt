@@ -1,0 +1,57 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.933
+Okay, so let's get started with today's topic,
+
+2
+00:00:03.933 --> 00:00:07.667
+which is the idea of a treatment effect.
+
+3
+00:00:07.667 --> 00:00:11.800
+Imagine we want to know whether a training programme
+
+4
+00:00:11.800 --> 00:00:15.233
+actually raises people's wages.
+
+5
+00:00:15.233 --> 00:00:18.867
+The naive approach is just to compare
+
+6
+00:00:18.867 --> 00:00:23.033
+people who took the programme with people who didn't.
+
+7
+00:00:23.033 --> 00:00:27.067
+But, um, those two groups might be very different
+
+8
+00:00:27.067 --> 00:00:30.567
+before the programme even starts.
+
+9
+00:00:30.567 --> 00:00:34.033
+So today we'll look at matching,
+
+10
+00:00:34.033 --> 00:00:37.700
+which tries to compare like with like.
+
+11
+00:00:37.700 --> 00:00:41.000
+We pair each treated person
+
+12
+00:00:41.000 --> 00:00:44.800
+with an untreated person who looks similar
+
+13
+00:00:44.800 --> 00:00:48.167
+on the things we can observe.
+
+14
+00:00:48.167 --> 00:00:52.167
+Let's look at a small example on the next slide.

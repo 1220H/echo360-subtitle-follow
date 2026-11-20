@@ -311,15 +311,24 @@
 
   /* ---------- Echo360: fetch the lesson's transcript automatically ---------- */
   var UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
-  var lessonMatch = PATH.match(new RegExp('/lesson/(' + UUID + ')', 'i'));
-  var LESSON = lessonMatch ? lessonMatch[1] : null;
+  // lesson ids come in two shapes: /lesson/{uuid}/... and /lesson/G_{uuid}_{uuid}_{date}...
+  var lessonMatch = PATH.match(/\/lesson\/([^\/?#]+)/i);
+  var LESSON = lessonMatch && new RegExp(UUID, 'i').test(lessonMatch[1]) ? decodeURIComponent(lessonMatch[1]) : null;
   if (LESSON) $('#subsync-fetch').style.display = '';
-  function mediaIds() {
-    var ids = [], re = new RegExp('/medias?/(' + UUID + ')', 'ig');
+  function resNames() {
     var names = (performance.getEntriesByType ? performance.getEntriesByType('resource') : []).map(function (e) { return e.name; });
     [].forEach.call(document.querySelectorAll('[src],[href]'), function (el) { names.push(el.getAttribute('src') || el.getAttribute('href') || ''); });
-    names.forEach(function (n) { var m; re.lastIndex = 0; while ((m = re.exec(n))) { var id = m[1].toLowerCase(); if (id !== LESSON.toLowerCase() && ids.indexOf(id) < 0) ids.push(id); } });
-    return ids;
+    return names;
+  }
+  function mediaIds() {
+    // best source: the player's own API calls, which carry the exact lesson id it uses
+    var pairs = [], ids = [], names = resNames();
+    var pre = new RegExp('/lessons/([^/?#]+)/medias?/(' + UUID + ')', 'ig');
+    names.forEach(function (n) { var m; pre.lastIndex = 0; while ((m = pre.exec(n))) { var k = m[1] + '|' + m[2].toLowerCase(); if (pairs.indexOf(k) < 0) pairs.push(k); } });
+    if (pairs.length) return pairs.map(function (k) { var a = k.split('|'); return { lesson: decodeURIComponent(a[0]), id: a[1] }; });
+    var re = new RegExp('/medias?/(' + UUID + ')', 'ig'), low = LESSON.toLowerCase();
+    names.forEach(function (n) { var m; re.lastIndex = 0; while ((m = re.exec(n))) { var id = m[1].toLowerCase(); if (low.indexOf(id) < 0 && ids.indexOf(id) < 0) ids.push(id); } });
+    return ids.map(function (id) { return { lesson: LESSON, id: id }; });
   }
   function fetchEcho(tries) {
     if (!LESSON) { warn(T.notEcho); return; }
@@ -330,8 +339,8 @@
       return;
     }
     var best = null, pending = ids.length;
-    ids.forEach(function (id) {
-      fetch(location.origin + '/api/ui/echoplayer/lessons/' + LESSON + '/medias/' + id + '/transcript-file?format=vtt', { credentials: 'include' })
+    ids.forEach(function (x) {
+      fetch(location.origin + '/api/ui/echoplayer/lessons/' + encodeURIComponent(x.lesson) + '/medias/' + x.id + '/transcript-file?format=vtt', { credentials: 'include' })
         .then(function (r) { return r.ok ? r.text() : ''; }).catch(function () { return ''; })
         .then(function (t) {
           var n = /^\s*WEBVTT/.test(t) ? (t.match(/-->/g) || []).length : 0;

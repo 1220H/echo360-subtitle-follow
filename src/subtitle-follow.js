@@ -39,7 +39,7 @@
     exVtt: '双语字幕 VTT', exVttTip: '原文 + 译文，带时间轴，可再次载入或用于播放器',
     exMd: '双语讲稿 Markdown', exMdTip: '整节课的文字稿，可放进笔记软件复习', exCsv: '生词本 CSV', exCsvTip: '可导入 Anki / Excel',
     nothing: '⚠️ 还没有可导出的内容',
-    ov: '🎬', ovTip: '在视频画面上显示字幕（拖动调位置，滚轮调大小；可点 ✕ 关掉面板只留字幕）',
+    ov: '🎬', ovTip: '在视频画面上显示字幕（鼠标移到字幕上：A− / A+ 调大小、切换双语 / 仅译文；拖动调位置；可点 ✕ 关掉面板只留字幕）',
     mini: '▭', miniTip: '字幕条模式：只显示当前这句（配合 🪟 独立窗口可放到任何位置）', miniExit: '⤢ 展开',
     data: '数据', resetLesson: '♻︎ 清除这节课的字幕和译文', resetLessonTip: '恢复成第一次打开的状态，并重新从页面获取字幕',
     resetAll: '⚠️ 全部重置', resetAllTip: '清除所有课程的字幕、译文、生词本和设置（包括 API Key）', confirm: '再点一次确认', resetDone: '♻︎ 已重置'
@@ -68,7 +68,7 @@
     exVtt: 'Bilingual VTT', exVttTip: 'Original + translation with timestamps',
     exMd: 'Bilingual transcript (Markdown)', exMdTip: 'The whole lecture as text, for your notes', exCsv: 'Vocabulary CSV', exCsvTip: 'For Anki / Excel',
     nothing: '⚠️ Nothing to export yet',
-    ov: '🎬', ovTip: 'Show subtitles on the video itself (drag to move, scroll to resize; close the panel with ✕ to keep only the subtitles)',
+    ov: '🎬', ovTip: 'Show subtitles on the video itself (hover them for A− / A+ and Both / Translation only; drag to move; close the panel with ✕ to keep only the subtitles)',
     mini: '▭', miniTip: 'Subtitle-bar mode: show only the current line (combine with 🪟 to place it anywhere)', miniExit: '⤢ Expand',
     data: 'Data', resetLesson: '♻︎ Clear this lecture', resetLessonTip: 'Forget its subtitles and translations and fetch them again from the page',
     resetAll: '⚠️ Reset everything', resetAllTip: 'Delete all lectures, translations, vocabulary and settings (including your API key)', confirm: 'Click again to confirm', resetDone: '♻︎ Reset done'
@@ -93,7 +93,7 @@
   var state = {
     raw: [], cues: [], bilingualFile: false, idx: -1, offset: 0, follow: true, merge: LS('merge') !== '0', userScrollAt: 0,
     font: parseInt(LS('font') || '20', 10), clock: { t: 0, playing: false, rate: 1.5, last: 0 },
-    ov: LS('ov') === '1', ovY: parseFloat(LS('ovy') || '0.09'), ovScale: parseFloat(LS('ovs') || '1'), mini: false, ovDirty: true,
+    ov: LS('ov') === '1', ovY: parseFloat(LS('ovy') || '0.09'), ovScale: parseFloat(LS('ovs') || '1'), ovView: LS('ovv') || 'bi', mini: false, ovDirty: true,
     tr: {}, trRun: null, usage: { p: 0, c: 0 }, vocab: LSJ('vocab') || [], drawer: '', warnAt: 0
   };
 
@@ -150,11 +150,15 @@
     '#subsync-add{position:absolute;display:none;z-index:3;background:#2a2620!important;color:#fff!important;border:none!important;border-radius:14px!important;padding:5px 10px!important;box-shadow:0 2px 8px rgba(0,0,0,.25)}';
   css.textContent +=
     '#subsync-ov{position:fixed;z-index:2147483645;pointer-events:none;display:none;text-align:center;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Segoe UI",sans-serif}' +
-    '#subsync-ov .box{display:inline-block;pointer-events:auto;cursor:move;max-width:92%;padding:.25em .7em;border-radius:.45em;background:rgba(0,0,0,.62);color:#fff;line-height:1.35;text-shadow:0 1px 2px rgba(0,0,0,.5);user-select:none}' +
+    '#subsync-ov .box{position:relative;display:inline-block;pointer-events:auto;cursor:move;max-width:92%;padding:.25em .7em;border-radius:.45em;background:rgba(0,0,0,.62);color:#fff;line-height:1.35;text-shadow:0 1px 2px rgba(0,0,0,.5);user-select:none}' +
     '#subsync-ov .box:empty,#subsync-ov.blank .box{display:none}' +
     '#subsync-ov .s{display:block;font-size:.72em;opacity:.88}' +
     '#subsync-ov .s:empty,#subsync-mini .s:empty{display:none}' +
-    '#subsync-ov .d{display:block}';
+    '#subsync-ov .d{display:block}' +
+    '#subsync-ov .tools{position:absolute;right:0;bottom:100%;padding-bottom:6px;display:none;gap:4px;white-space:nowrap;cursor:default}' +
+    '#subsync-ov .box.hot .tools{display:flex}' +
+    '#subsync-ov .tools button{font:600 12px/1 -apple-system,"Segoe UI","PingFang SC",sans-serif;padding:6px 9px;border:none;border-radius:6px;background:rgba(0,0,0,.78);color:#fff;cursor:pointer;text-shadow:none}' +
+    '#subsync-ov .tools button:hover{background:#c8102e}';
   document.head.appendChild(css);
 
   /* ---------- panel ---------- */
@@ -189,7 +193,7 @@
   window.__subsyncPanel = p;
   var ov = document.createElement('div');
   ov.id = 'subsync-ov'; ov.setAttribute('translate', 'no'); ov.className = 'notranslate v-' + cfg.view;
-  ov.innerHTML = '<div class="box" title="' + T.ovTip + '"><span class="s"></span><span class="d"></span></div>';
+  ov.innerHTML = '<div class="box" title="' + T.ovTip + '"><div class="tools"><button data-o="m" title="' + T.fm + '">A\u2212</button><button data-o="p" title="' + T.fp + '">A+</button><button data-o="v"></button></div><span class="s"></span><span class="d"></span></div>';
   document.body.appendChild(ov);
   var $ = function (s) { return p.querySelector(s); };
   var list = $('#subsync-list'), drop = $('#subsync-drop'), st = $('#subsync-st'), back = $('#subsync-back'), drawer = $('#subsync-drawer'), addBtn = $('#subsync-add');
@@ -408,12 +412,13 @@
     if (!c || now() + state.offset > c.e + 1.5) return null;
     return { s: c.src, d: dstOf(c) };
   }
-  function setLines(root, t) {
+  function setLines(root, t, view) {
     // .s = small line (original, bilingual only), .d = main line
     var small = '', main = '';
+    view = view || cfg.view;
     if (t) {
-      if (cfg.view === 'src') main = t.s;
-      else if (cfg.view === 'dst') main = t.d || t.s;
+      if (view === 'src') main = t.s;
+      else if (view === 'dst') main = t.d || t.s;
       else { main = t.d || t.s; small = t.d ? t.s : ''; }
     }
     root.querySelector('.s').textContent = small; root.querySelector('.d').textContent = main;
@@ -434,12 +439,32 @@
     ov.style.display = 'block';
     ov.style.left = r.left + 'px'; ov.style.width = r.width + 'px';
     ov.style.top = 'auto'; ov.style.bottom = Math.max(0, window.innerHeight - r.bottom + r.height * state.ovY) + 'px';
-    ov.style.fontSize = Math.max(13, Math.min(46, r.height * 0.05 * state.ovScale)) + 'px';
+    var fsz = Math.max(12, Math.min(44, r.height * 0.04 * state.ovScale));
+    ov.style.fontSize = fsz + 'px';
     ov.classList.toggle('blank', !t);
-    if (t) setLines(ov, t);
+    if (t) {
+      setLines(ov, t, state.ovView);
+      // a long sentence must not cover the slide: shrink it to at most ~26% of the video height
+      var bh = ov.querySelector('.box').offsetHeight, lim = r.height * 0.26;
+      if (bh > lim) ov.style.fontSize = Math.max(11, fsz * Math.sqrt(lim / bh)) + 'px';
+    }
   }
   (function () {
     var box = ov.querySelector('.box'), dragging = false, sy = 0, y0 = 0;
+    var VL = { bi: T.vBi, dst: T.vDst, src: T.vSrc }, vbtn = box.querySelector('[data-o="v"]');
+    vbtn.textContent = VL[state.ovView] || T.vBi;
+    box.querySelector('.tools').addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    // keep the toolbar up for a moment after the mouse leaves: the box resizes under the cursor when you click
+    var hotT = 0;
+    box.addEventListener('mouseenter', function () { clearTimeout(hotT); box.classList.add('hot'); });
+    box.addEventListener('mouseleave', function () { clearTimeout(hotT); hotT = setTimeout(function () { box.classList.remove('hot'); }, 2000); });
+    box.querySelector('.tools').addEventListener('click', function (e) {
+      var o = e.target.getAttribute && e.target.getAttribute('data-o'); if (!o) return;
+      e.stopPropagation();
+      if (o === 'm' || o === 'p') { state.ovScale = Math.max(0.4, Math.min(2.5, state.ovScale * (o === 'p' ? 1.12 : 0.89))); LS('ovs', state.ovScale.toFixed(2)); }
+      if (o === 'v') { state.ovView = { bi: 'dst', dst: 'src', src: 'bi' }[state.ovView] || 'bi'; LS('ovv', state.ovView); vbtn.textContent = VL[state.ovView]; }
+      state.ovDirty = true;
+    });
     box.addEventListener('mousedown', function (e) { dragging = true; sy = e.clientY; y0 = state.ovY; e.preventDefault(); });
     window.addEventListener('mousemove', function (e) {
       if (!dragging || !video) return;
@@ -448,7 +473,7 @@
     });
     window.addEventListener('mouseup', function () { if (dragging) { dragging = false; LS('ovy', state.ovY.toFixed(3)); } });
     box.addEventListener('wheel', function (e) {
-      e.preventDefault(); state.ovScale = Math.max(0.5, Math.min(2.5, state.ovScale * (e.deltaY < 0 ? 1.08 : 0.93)));
+      e.preventDefault(); state.ovScale = Math.max(0.4, Math.min(2.5, state.ovScale * (e.deltaY < 0 ? 1.08 : 0.93)));
       LS('ovs', state.ovScale.toFixed(2)); state.ovDirty = true;
     }, { passive: false });
     // drag the panel by the subtitle bar when it is in the page

@@ -5,6 +5,7 @@
 
 Reads  src/subtitle-follow.js
 Writes docs/bookmarklet.txt  (the javascript: URL)
+       docs/subtitle-follow.min.js + docs/version.json  (for the in-panel update button)
        docs/index.html       (install page with the drag-to-bookmarks button)
 """
 import html
@@ -43,6 +44,12 @@ def main() -> None:
     code = minify(src)
     bookmarklet = "javascript:" + urllib.parse.quote(code, safe="()'*!~-_.;,/:=+$[]{}")
     (ROOT / "docs" / "bookmarklet.txt").write_text(bookmarklet + "\n", encoding="utf-8")
+    # Self-update: the update button fetches these two files from GitHub Pages.
+    ver = re.search(r"var VER = (\d+)", src)
+    if not ver:
+        raise SystemExit("src/subtitle-follow.js must define `var VER = <number>`")
+    (ROOT / "docs" / "subtitle-follow.min.js").write_text(code + "\n", encoding="utf-8")
+    (ROOT / "docs" / "version.json").write_text(json.dumps({"v": int(ver.group(1))}) + "\n", encoding="utf-8")
 
     tpl = (ROOT / "tools" / "index.tpl.html").read_text(encoding="utf-8")
     page = (
@@ -51,7 +58,7 @@ def main() -> None:
         .replace("__REPO_URL__", REPO_URL)
     )
     (ROOT / "docs" / "index.html").write_text(page, encoding="utf-8")
-    print(f"bookmarklet: {len(bookmarklet):,} chars -> docs/bookmarklet.txt, docs/index.html")
+    print(f"v{ver.group(1)} bookmarklet: {len(bookmarklet):,} chars -> docs/bookmarklet.txt, docs/index.html, docs/subtitle-follow.min.js, docs/version.json")
 
 
 if __name__ == "__main__":

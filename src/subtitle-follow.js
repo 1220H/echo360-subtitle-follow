@@ -12,6 +12,22 @@
     old.style.display = old.style.display === 'none' ? 'flex' : 'none'; return;
   }
 
+  /* ---------- version / self-update ---------- */
+  // Bump VER for every release (tools/build.py publishes it in docs/version.json).
+  var VER = 1, HOME = 'https://1220h.github.io/echo360-subtitle-follow/';
+  // A newer version fetched with the update button is kept in this site's storage and runs instead,
+  // so people never have to re-drag the bookmark.
+  if (!window.__subsyncBoot) {
+    var cached = null;
+    try { if ((+localStorage.getItem('subsync:codev') || 0) > VER) cached = localStorage.getItem('subsync:code'); } catch (e) {}
+    if (cached) {
+      window.__subsyncBoot = 1;
+      try { (0, eval)(cached); return; }
+      catch (e) { try { localStorage.removeItem('subsync:code'); localStorage.removeItem('subsync:codev'); } catch (e2) {} }
+      finally { window.__subsyncBoot = 0; }
+    }
+  }
+
   /* ---------- i18n ---------- */
   var ZH = /^zh/i.test(navigator.language || '');
   var T = ZH ? {
@@ -42,7 +58,9 @@
     ov: '🎬', ovTip: '在视频画面上显示字幕（鼠标移到字幕上：A− / A+ 调大小、切换双语 / 仅译文；拖动调位置；可点 ✕ 关掉面板只留字幕）',
     mini: '▭', miniTip: '字幕条模式：只显示当前这句（配合 🪟 独立窗口可放到任何位置）', miniExit: '⤢ 展开',
     data: '数据', resetLesson: '♻︎ 清除这节课的字幕和译文', resetLessonTip: '恢复成第一次打开的状态，并重新从页面获取字幕',
-    resetAll: '⚠️ 全部重置', resetAllTip: '清除所有课程的字幕、译文、生词本和设置（包括 API Key）', confirm: '再点一次确认', resetDone: '♻︎ 已重置'
+    resetAll: '⚠️ 全部重置', resetAllTip: '清除所有课程的字幕、译文、生词本和设置（包括 API Key）', confirm: '再点一次确认', resetDone: '♻︎ 已重置',
+    upd: '⬆', updTip: '检查更新（有新版本时亮红点，点一下自动更新，不用重新拖书签）', updating: '⏳ 正在更新…', updFail: '⚠️ 更新失败，请稍后再试，或从安装页重新拖一次书签',
+    upToDate: function (v) { return '✅ 已是最新版本 v' + v; }, updated: function (v) { return '✅ 已更新到 v' + v; }, updNew: function (v) { return '🔴 有新版本 v' + v + '，点 ⬆ 更新'; }
   } : {
     title: 'Subtitle Follow', load: '📂', loadTip: 'Load a local .vtt / .srt file', fetch: '⟳', fetchTip: 'Re-fetch subtitles from this Echo360 page',
     pip: '🪟', pipTip: 'Pop out into a floating always-on-top window (click again to dock)', fm: 'Smaller text', fp: 'Larger text', close: 'Close (click the bookmark again to reopen)',
@@ -71,7 +89,9 @@
     ov: '🎬', ovTip: 'Show subtitles on the video itself (hover them for A− / A+ and Both / Translation only; drag to move; close the panel with ✕ to keep only the subtitles)',
     mini: '▭', miniTip: 'Subtitle-bar mode: show only the current line (combine with 🪟 to place it anywhere)', miniExit: '⤢ Expand',
     data: 'Data', resetLesson: '♻︎ Clear this lecture', resetLessonTip: 'Forget its subtitles and translations and fetch them again from the page',
-    resetAll: '⚠️ Reset everything', resetAllTip: 'Delete all lectures, translations, vocabulary and settings (including your API key)', confirm: 'Click again to confirm', resetDone: '♻︎ Reset done'
+    resetAll: '⚠️ Reset everything', resetAllTip: 'Delete all lectures, translations, vocabulary and settings (including your API key)', confirm: 'Click again to confirm', resetDone: '♻︎ Reset done',
+    upd: '⬆', updTip: 'Check for updates (a red dot means a new version: one click updates, no need to re-drag the bookmark)', updating: '⏳ Updating…', updFail: '⚠️ Update failed. Try again later, or re-drag the bookmark from the install page',
+    upToDate: function (v) { return '✅ Up to date (v' + v + ')'; }, updated: function (v) { return '✅ Updated to v' + v; }, updNew: function (v) { return '🔴 New version v' + v + ' — click ⬆ to update'; }
   };
   var LANGS = [['zh-CN', '简体中文', 'Simplified Chinese'], ['zh-TW', '繁體中文', 'Traditional Chinese'], ['en', 'English', 'English'],
     ['ja', '日本語', 'Japanese'], ['ko', '한국어', 'Korean'], ['vi', 'Tiếng Việt', 'Vietnamese'], ['th', 'ไทย', 'Thai'],
@@ -106,6 +126,7 @@
     '#subsync-head b{font-size:14px;margin-right:auto;color:#5a4a2a}' +
     '#subsync-panel button,#subsync-panel select,#subsync-panel input{font:12.5px/1.2 -apple-system,"Segoe UI",sans-serif;padding:5px 8px;border:1px solid #cfc7b3;background:#fff;color:#333;border-radius:6px}' +
     '#subsync-panel button{cursor:pointer}' +
+    '#subsync-upd{position:relative}#subsync-upd i{display:none;position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#e8112d;box-shadow:0 0 0 2px #f3efe4}#subsync-upd.new i{display:block}' +
     '#subsync-panel button:hover{background:#faf6ea}' +
     '#subsync-panel button.on{background:#c8102e;color:#fff;border-color:#c8102e}' +
     '#subsync-panel button.pri{background:#c8102e;color:#fff;border-color:#c8102e;font-weight:600}' +
@@ -173,6 +194,7 @@
     '<button data-a="mini" title="' + T.miniTip + '">' + T.mini + '</button>' +
     '<button data-a="pip" id="subsync-pipbtn" title="' + T.pipTip + '">' + T.pip + '</button>' +
     '<button data-a="fm" title="' + T.fm + '">A−</button><button data-a="fp" title="' + T.fp + '">A+</button>' +
+    '<button data-a="upd" id="subsync-upd" title="' + T.updTip + '">' + T.upd + '<i></i></button>' +
     '<button data-a="x" title="' + T.close + '">✕</button></div>' +
     '<div id="subsync-bar"' + NT + '><span id="subsync-st">' + T.finding + '</span>' +
     '<button data-a="load" title="' + T.loadTip + '">' + T.load + '</button>' +
@@ -500,6 +522,7 @@
   }
 
   function tick() {
+    if (state.dead) return;
     if (state.cues.length) {
       var i = find(now() + state.offset);
       var userLock = Date.now() - state.userScrollAt < 4000;
@@ -752,6 +775,7 @@
     else if (a === 'fp' || a === 'fm') { state.font = Math.max(12, Math.min(40, state.font + (a === 'fp' ? 2 : -2))); list.style.fontSize = state.font + 'px'; LS('font', state.font); }
     else if (a === 'x') { if (window.__subsyncPip) window.__subsyncPip.close(); else p.style.display = 'none'; }
     else if (a === 'pip') popOut();
+    else if (a === 'upd') checkUpdate(true);
     else if (a === 'ov') setOverlay(!state.ov);
     else if (a === 'mini') setMini(!state.mini);
     else if (a === 'om' || a === 'op') { state.offset += a === 'op' ? 0.5 : -0.5; $('#subsync-off').textContent = state.offset.toFixed(1) + 's'; state.idx = -2; }
@@ -794,6 +818,7 @@
       $('#subsync-pipbtn').classList.add('on');
       state.idx = -2;
       w.addEventListener('pagehide', function () {
+        if (state.dead) return;
         document.body.appendChild(p);
         window.__subsyncPip = null;
         $('#subsync-pipbtn').classList.remove('on');
@@ -803,6 +828,45 @@
   }
 
   if (state.ov) $('#subsync-ovbtn').classList.add('on');
+
+  /* ---------- self-update ---------- */
+  function destroy() {
+    state.dead = true; stopTranslate();
+    if (window.__subsyncPip) { try { window.__subsyncPip.close(); } catch (e) {} window.__subsyncPip = null; }
+    [p, ov, css].forEach(function (el) { if (el && el.parentNode) el.parentNode.removeChild(el); });
+    window.__subsyncPanel = null;
+  }
+  function installUpdate(v) {
+    warn(T.updating);
+    fetch(HOME + 'subtitle-follow.min.js?v=' + v + '&t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function (code) {
+        var m = code.match(/var VER = (\d+)/);
+        if (!m || +m[1] <= VER || code.length < 20000) throw new Error('bad build');
+        LS('code', code); LS('codev', m[1]); LS('updated', m[1]);
+        destroy();
+        window.__subsyncBoot = 1;
+        try { (0, eval)(code); } finally { window.__subsyncBoot = 0; }
+      })
+      .catch(function () { warn(T.updFail); });
+  }
+  function checkUpdate(manual) {
+    if (!manual && Date.now() - (+LS('chk') || 0) < 3 * 3600e3) {
+      if ((+LS('latest') || 0) > VER) $('#subsync-upd').classList.add('new');
+      return;
+    }
+    fetch(HOME + 'version.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var v = +j.v || 0; LS('chk', Date.now()); LS('latest', v);
+        $('#subsync-upd').classList.toggle('new', v > VER);
+        if (v > VER) { if (manual) installUpdate(v); else warn(T.updNew(v)); }
+        else if (manual) warn(T.upToDate(VER));
+      })
+      .catch(function () { if (manual) warn(T.updFail); });
+  }
+  if (+LS('updated') === VER) { LS('updated', '0'); setTimeout(function () { warn(T.updated(VER)); }, 1500); }
+  setTimeout(function () { checkUpdate(false); }, 2500);
 
   /* ---------- start: restore this lecture, or fetch it from Echo360 ---------- */
   var saved = LS('subs:' + PATH);

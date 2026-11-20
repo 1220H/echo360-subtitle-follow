@@ -436,16 +436,23 @@
     if (ov.parentNode !== host) host.appendChild(ov);
     var r = video.getBoundingClientRect();
     if (r.width < 50 || r.height < 50) { ov.style.display = 'none'; return; }
+    // Echo360 shrinks the video while its control bar is showing. Following that made the subtitle jump,
+    // and with the mouse on the subtitle it looped (move -> controls show -> move back -> controls hide).
+    // For the same layout, anchor to the smaller height: stable, and always above the control bar.
+    var a = state.ovAnchor, key = Math.round(r.left) + '|' + Math.round(r.top) + '|' + Math.round(r.width);
+    if (!a || a.key !== key || r.height < a.h * 0.8 || r.height > a.h * 1.25) a = state.ovAnchor = { key: key, h: r.height };
+    else a.h = Math.min(a.h, r.height);
+    var vh = a.h;
     ov.style.display = 'block';
     ov.style.left = r.left + 'px'; ov.style.width = r.width + 'px';
-    ov.style.top = 'auto'; ov.style.bottom = Math.max(0, window.innerHeight - r.bottom + r.height * state.ovY) + 'px';
-    var fsz = Math.max(12, Math.min(44, r.height * 0.04 * state.ovScale));
+    ov.style.top = 'auto'; ov.style.bottom = Math.max(0, window.innerHeight - (r.top + vh) + vh * state.ovY) + 'px';
+    var fsz = Math.max(12, Math.min(44, vh * 0.04 * state.ovScale));
     ov.style.fontSize = fsz + 'px';
     ov.classList.toggle('blank', !t);
     if (t) {
       setLines(ov, t, state.ovView);
       // a long sentence must not cover the slide: shrink it to at most ~26% of the video height
-      var bh = ov.querySelector('.box').offsetHeight, lim = r.height * 0.26;
+      var bh = ov.querySelector('.box').offsetHeight, lim = vh * 0.26;
       if (bh > lim) ov.style.fontSize = Math.max(11, fsz * Math.sqrt(lim / bh)) + 'px';
     }
   }

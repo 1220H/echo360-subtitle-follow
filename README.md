@@ -80,10 +80,12 @@ MIT
 - **🎬 字幕叠在视频上**，像看电影一样，可以双语或单语，全屏时也有；也可以用 **▭** 把面板缩成一条只显示当前这句的字幕条。
 
 > 非官方工具，与 Echo360 无关。
-这个工具是我在 UEA 上课时，为了解决自己看录播课的痛点做的。做完之后才发现，悉尼大学的 @bryanxianyu 早先也做了一个思路相近的浏览器扩展 Echo360 Online Subtitle Translator，它把翻译字幕直接叠在视频上。两个工具各有侧重，欢迎都试试。
+
 **为什么做这个：** 很多留学生课后会一边看录播，一边在旁边对照字幕，但只能手动滑动字幕找位置，开 1.5 倍速时更是滑个不停。这个工具让当前这句自动停在眼前，译文就在它下面。
 
-它是「**阅读视图**」：上下文都看得到，可以往回翻，也可以点着回听。如果你更喜欢像看电影那样把字幕直接叠在视频上，可以试试另一位同学做的浏览器扩展 **[Echo360 Online Subtitle Translator](https://github.com/bryanxianyu/echo360-online-subtitle-translator)**。
+它是「**阅读视图**」：上下文都看得到，可以往回翻，也可以点着回听。
+
+**同类项目：** 这个工具是我在 UEA 上课时，为了解决自己看录播课的痛点做的。做完之后才发现，悉尼大学的 [@bryanxianyu](https://github.com/bryanxianyu) 早先也做了一个思路相近的浏览器扩展 [Echo360 Online Subtitle Translator](https://github.com/bryanxianyu/echo360-online-subtitle-translator)，它把翻译字幕直接叠在视频上，像看电影一样。两个工具各有侧重，欢迎都试试。
 
 **免费翻译和 AI 翻译怎么选：** Google 免费翻译零门槛，日常句子没问题，但学科术语容易翻错。比如在一节计量经济学课里，它把 treatment effect 翻成了「治疗效果」，把 matching 翻成了「搭配」。AI 大模型知道课程名称，会翻成「处理效应」和「匹配」。没接触过 API 的同学，直接用免费翻译就行。
 

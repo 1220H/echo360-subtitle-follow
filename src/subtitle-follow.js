@@ -14,7 +14,7 @@
 
   /* ---------- version / self-update ---------- */
   // Bump VER for every release (tools/build.py publishes it in docs/version.json).
-  var VER = 1, HOME = 'https://1220h.github.io/echo360-subtitle-follow/';
+  var VER = 2, HOME = 'https://1220h.github.io/echo360-subtitle-follow/';
   // A newer version fetched with the update button is kept in this site's storage and runs instead,
   // so people never have to re-drag the bookmark.
   if (!window.__subsyncBoot) {
@@ -58,7 +58,7 @@
     ov: '🎬', ovTip: '在视频画面上显示字幕（鼠标移到字幕上：A− / A+ 调大小、切换双语 / 仅译文；拖动调位置；可点 ✕ 关掉面板只留字幕）',
     mini: '▭', miniTip: '字幕条模式：只显示当前这句（配合 🪟 独立窗口可放到任何位置）', miniExit: '⤢ 展开',
     data: '数据', resetLesson: '♻︎ 清除这节课的字幕和译文', resetLessonTip: '恢复成第一次打开的状态，并重新从页面获取字幕',
-    resetAll: '⚠️ 全部重置', resetAllTip: '清除所有课程的字幕、译文、生词本和设置（包括 API Key）', confirm: '再点一次确认', resetDone: '♻︎ 已重置',
+    resetAll: '⚠️ 全部重置', resetAllTip: '清除所有课程的字幕、译文、生词本和设置（包括 API Key）', confirm: '再点一次确认', resetDone: '♻︎ 已重置', evicted: function (n) { return '🧹 浏览器存储满了，已自动清除最久没打开的 ' + n + ' 节课的字幕和译文'; },
     upd: '⬆', updTip: '检查更新（有新版本时亮红点，点一下自动更新，不用重新拖书签）', updating: '⏳ 正在更新…', updFail: '⚠️ 更新失败，请稍后再试，或从安装页重新拖一次书签',
     upToDate: function (v) { return '✅ 已是最新版本 v' + v; }, updated: function (v) { return '✅ 已更新到 v' + v; }, updNew: function (v) { return '🔴 有新版本 v' + v + '，点 ⬆ 更新'; }
   } : {
@@ -89,7 +89,7 @@
     ov: '🎬', ovTip: 'Show subtitles on the video itself (hover them for A− / A+ and Both / Translation only; drag to move; close the panel with ✕ to keep only the subtitles)',
     mini: '▭', miniTip: 'Subtitle-bar mode: show only the current line (combine with 🪟 to place it anywhere)', miniExit: '⤢ Expand',
     data: 'Data', resetLesson: '♻︎ Clear this lecture', resetLessonTip: 'Forget its subtitles and translations and fetch them again from the page',
-    resetAll: '⚠️ Reset everything', resetAllTip: 'Delete all lectures, translations, vocabulary and settings (including your API key)', confirm: 'Click again to confirm', resetDone: '♻︎ Reset done',
+    resetAll: '⚠️ Reset everything', resetAllTip: 'Delete all lectures, translations, vocabulary and settings (including your API key)', confirm: 'Click again to confirm', resetDone: '♻︎ Reset done', evicted: function (n) { return '🧹 Browser storage was full: removed subtitles and translations of the ' + n + ' least recently opened lecture(s)'; },
     upd: '⬆', updTip: 'Check for updates (a red dot means a new version: one click updates, no need to re-drag the bookmark)', updating: '⏳ Updating…', updFail: '⚠️ Update failed. Try again later, or re-drag the bookmark from the install page',
     upToDate: function (v) { return '✅ Up to date (v' + v + ')'; }, updated: function (v) { return '✅ Updated to v' + v; }, updNew: function (v) { return '🔴 New version v' + v + ' — click ⬆ to update'; }
   };
@@ -101,7 +101,39 @@
   function langName(code) { for (var i = 0; i < LANGS.length; i++) if (LANGS[i][0] === code) return LANGS[i][2]; return code; }
 
   /* ---------- storage & state ---------- */
-  var LS = function (k, v) { try { if (v === undefined) return localStorage.getItem('subsync:' + k); localStorage.setItem('subsync:' + k, v); } catch (e) { return null; } };
+  var LS = function (k, v) {
+    try {
+      if (v === undefined) return localStorage.getItem('subsync:' + k);
+      // the browser gives each site ~5 MB; when it is full, drop the least recently opened lectures and retry
+      for (var n = 0; ; n++) {
+        try { localStorage.setItem('subsync:' + k, v); return; }
+        catch (e) { if (n >= 30 || !evictOldest()) throw e; }
+      }
+    } catch (e) { return null; }
+  };
+  // Per-lecture keys: subs:PATH, name:PATH, seen:PATH, tr:PATH:LANG (PATH itself may contain ':').
+  function lessonOf(key) {
+    var m = key.match(/^subsync:(subs|name|seen):(.*)$/);
+    if (m) return m[2];
+    m = key.match(/^subsync:tr:(.*):[^:]*$/);
+    return m ? m[1] : null;
+  }
+  var evicted = 0, evictTimer = 0;
+  function evictOldest() {
+    var keys = [], lessons = {}, oldest = null;
+    try { keys = Object.keys(localStorage); } catch (e) { return false; }
+    keys.forEach(function (k) { var l = lessonOf(k); if (l !== null && l !== PATH) lessons[l] = 1; });
+    Object.keys(lessons).forEach(function (l) {
+      var t = +localStorage.getItem('subsync:seen:' + l) || 0;
+      if (!oldest || t < oldest.t) oldest = { l: l, t: t };
+    });
+    if (!oldest) return false;
+    keys.forEach(function (k) { if (lessonOf(k) === oldest.l) localStorage.removeItem(k); });
+    evicted++;
+    clearTimeout(evictTimer);
+    evictTimer = setTimeout(function () { warn(T.evicted(evicted)); evicted = 0; }, 300);
+    return true;
+  }
   var LSJ = function (k, v) { if (v === undefined) { try { return JSON.parse(LS(k) || 'null'); } catch (e) { return null; } } LS(k, JSON.stringify(v)); };
   var PATH = location.pathname;
   var cfg = LSJ('cfg') || {};
@@ -869,6 +901,7 @@
   setTimeout(function () { checkUpdate(false); }, 2500);
 
   /* ---------- start: restore this lecture, or fetch it from Echo360 ---------- */
+  LS('seen:' + PATH, String(Date.now()));
   var saved = LS('subs:' + PATH);
   if (saved) loadText(saved, LS('name:' + PATH));
   else if (LESSON) fetchEcho();

@@ -92,3 +92,9 @@ MIT
 **安装：** 打开[安装页](https://1220H.github.io/lecture-subtitle-follow/)，把红色按钮拖到书签栏。不需要安装任何浏览器扩展。
 
 **隐私：** 没有服务器，也没有任何统计。字幕、译文、设置和 API Key 都只保存在你自己的浏览器里，文本只会发送给你选择的翻译服务。
+
+---
+
+**Credits:** An idea of mine, turned into a working tool and refined together with Claude (Anthropic's AI assistant).
+
+**致谢：** 这是我把自己的想法交给 Claude（Anthropic 的 AI 助手）之后，一起完善出来的小工具。

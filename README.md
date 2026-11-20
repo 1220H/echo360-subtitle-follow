@@ -1,6 +1,8 @@
-# 🎧 Subtitle Follow
+# 🎧 Echo360 字幕翻译 · Bilingual Subtitles for Echo360
 
-**A reading-style subtitle panel for lecture recordings.** Subtitle Follow is a free bookmarklet. It was made for **Echo360** and works with most HTML5 video players. One click opens a panel next to the video that:
+> **Echo360 录播课自动中英双语字幕**：自动获取字幕 · 免费 / AI 翻译 · 字幕跟随视频滚动 · 字幕叠加在视频上 · 生词本 · 导出双语讲稿
+
+**Subtitle Follow translates Echo360 lecture subtitles and keeps them in step with the video.** It is a free bookmarklet. It was made for **Echo360** and works with most HTML5 video players. One click opens a panel next to the video that:
 
 - **loads the lecture's subtitles automatically** on Echo360, so you don't need to download anything,
 - **scrolls with the video** at any speed and after seeking, and lets you **click any line to jump** there,
@@ -10,7 +12,7 @@
 - can **pop out into a floating always-on-top window**, so it never covers the slides,
 - can show **movie-style subtitles on the video itself** (🎬), bilingual or one language, and also in full screen. You can also shrink the panel to a **one-line subtitle bar** (▭).
 
-[中文说明](#中文说明) · **[Install page →](https://1220H.github.io/lecture-subtitle-follow/)** · [VTT file translator](https://1220H.github.io/lecture-subtitle-follow/translator.html)
+[中文说明](#中文说明) · **[Install page →](https://1220H.github.io/echo360-subtitle-follow/)** · [VTT file translator](https://1220H.github.io/echo360-subtitle-follow/translator.html)
 
 > Unofficial. Not affiliated with or endorsed by Echo360.
 
@@ -22,7 +24,7 @@ It is a **reading view**: you see the sentences before and after the current one
 
 ## Install
 
-Open the **[install page](https://1220H.github.io/lecture-subtitle-follow/)** and drag the red button onto your bookmarks bar. Show the bar with ⌘⇧B on Mac or Ctrl+Shift+B on Windows. You don't need to install any extension.
+Open the **[install page](https://1220H.github.io/echo360-subtitle-follow/)** and drag the red button onto your bookmarks bar. Show the bar with ⌘⇧B on Mac or Ctrl+Shift+B on Windows. You don't need to install any extension.
 
 ## Use
 
@@ -40,7 +42,7 @@ On other sites, load a `.vtt` / `.srt` file with **📂**. Clicking the bookmark
 
 ## VTT file translator
 
-[`docs/translator.html`](https://1220H.github.io/lecture-subtitle-follow/translator.html) is a standalone page for translating subtitle files. It works with any OpenAI-compatible API, supports 17 target languages and exports bilingual or translation-only VTT. Use it when you have a file but no video page.
+[`docs/translator.html`](https://1220H.github.io/echo360-subtitle-follow/translator.html) is a standalone page for translating subtitle files. It works with any OpenAI-compatible API, supports 17 target languages and exports bilingual or translation-only VTT. Use it when you have a file but no video page.
 
 ## Privacy
 
@@ -69,7 +71,7 @@ MIT
 
 ## 中文说明
 
-**给课程录播用的「对照阅读式」字幕面板。** 这是一个免费的书签小工具，为 **Echo360** 做的，大多数 HTML5 视频网站也能用。点一下书签，视频旁边会出现一个字幕面板，它可以：
+**给 Echo360 录播课自动加中英双语字幕的「对照阅读式」字幕面板。** 这是一个免费的书签小工具，为 **Echo360** 做的，大多数 HTML5 视频网站也能用。点一下书签，视频旁边会出现一个字幕面板，它可以：
 
 - 在 Echo360 上**自动获取这节课的字幕**，不用再手动下载 VTT；
 - **自动跟着视频滚动**，倍速、拖进度条都能跟上，**点任意一句就能跳过去**回听；
@@ -89,7 +91,7 @@ MIT
 
 **免费翻译和 AI 翻译怎么选：** Google 免费翻译零门槛，日常句子没问题，但学科术语容易翻错。比如在一节计量经济学课里，它把 treatment effect 翻成了「治疗效果」，把 matching 翻成了「搭配」。AI 大模型知道课程名称，会翻成「处理效应」和「匹配」。没接触过 API 的同学，直接用免费翻译就行。
 
-**安装：** 打开[安装页](https://1220H.github.io/lecture-subtitle-follow/)，把红色按钮拖到书签栏。不需要安装任何浏览器扩展。
+**安装：** 打开[安装页](https://1220H.github.io/echo360-subtitle-follow/)，把红色按钮拖到书签栏。不需要安装任何浏览器扩展。
 
 **隐私：** 没有服务器，也没有任何统计。字幕、译文、设置和 API Key 都只保存在你自己的浏览器里，文本只会发送给你选择的翻译服务。
 

@@ -44,6 +44,32 @@
   a{color:var(--acc)}
   footer{font-size:13px;color:var(--mute);text-align:center;margin-top:40px}
   footer a{color:var(--mute)}
+  /* drag-to-bookmarks-bar demo */
+  .demo{position:relative;height:236px;margin:18px 0 6px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;font:13px/1 -apple-system,"PingFang SC","Segoe UI",sans-serif;user-select:none}
+  .demo .tb{height:28px;background:#ece8df;display:flex;align-items:center;gap:6px;padding:0 10px}
+  .demo .tb i{width:10px;height:10px;border-radius:50%;background:#d9d2c3}
+  .demo .ad{height:32px;background:#f6f3ec;display:flex;align-items:center;padding:0 10px}
+  .demo .ad span{flex:1;height:20px;border-radius:10px;background:#fff;border:1px solid var(--line);color:#9a9180;font-size:11.5px;line-height:18px;padding:0 10px;white-space:nowrap;overflow:hidden}
+  .demo .bar{position:relative;height:30px;background:#f6f3ec;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 12px;color:#7d7566;font-size:12px}
+  .demo .bar .slot{position:absolute;left:36%;top:4px;height:22px;width:118px;border:2px dashed var(--acc);border-radius:7px;animation:dslot 4.8s infinite}
+  .demo .bar .got{position:absolute;left:36%;top:4px;height:22px;padding:0 10px;border-radius:7px;background:#fff;border:1px solid var(--line);color:var(--ink);line-height:20px;white-space:nowrap;opacity:0;animation:dgot 4.8s infinite}
+  .demo .lab{position:absolute;left:calc(36% + 132px);top:66px;color:var(--acc);font-weight:600;font-size:12.5px;animation:dslot 4.8s infinite;white-space:nowrap}
+  .demo .pg{position:absolute;left:0;right:0;top:92px;bottom:0;padding:22px 18px}
+  .demo .pg .line{height:8px;border-radius:4px;background:#eee8dc;margin:9px 0;width:60%}
+  .demo .btn{position:absolute;left:8%;top:150px;padding:8px 14px;border-radius:999px;background:var(--acc);color:#fff;font-weight:600;white-space:nowrap;box-shadow:0 3px 10px rgba(200,16,46,.3)}
+  .demo .ghost{position:absolute;left:8%;top:150px;padding:4px 10px;border-radius:7px;background:#fff;border:1px solid var(--line);color:var(--ink);white-space:nowrap;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.18);animation:dghost 4.8s infinite}
+  .demo .cur{position:absolute;left:calc(8% + 70px);top:175px;width:22px;height:22px;animation:dcur 4.8s infinite;z-index:2}
+  .demo .ok{position:absolute;right:14px;bottom:12px;color:#1f8a4c;font-weight:600;opacity:0;animation:dok 4.8s infinite}
+  .demo.replay *{animation-play-state:running}
+  @keyframes dcur{0%{left:calc(70% + 0px);top:200px;opacity:0}8%{opacity:1}22%{left:calc(8% + 70px);top:175px}30%{left:calc(8% + 70px);top:175px}62%{left:calc(36% + 60px);top:78px}74%{left:calc(36% + 60px);top:78px;opacity:1}86%,100%{left:calc(36% + 60px);top:78px;opacity:0}}
+  @keyframes dghost{0%,28%{left:8%;top:150px;opacity:0}31%{opacity:.95}62%{left:36%;top:62px;opacity:.95}64%,100%{left:36%;top:62px;opacity:0}}
+  @keyframes dgot{0%,62%{opacity:0;transform:scale(.8)}66%{opacity:1;transform:scale(1.08)}70%,92%{opacity:1;transform:scale(1)}100%{opacity:0}}
+  @keyframes dslot{0%,62%{opacity:1}64%,100%{opacity:0}}
+  @keyframes dok{0%,66%{opacity:0}70%,92%{opacity:1}100%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){.demo *{animation:none!important}.demo .got,.demo .ok{opacity:1}.demo .slot,.demo .lab,.demo .ghost{opacity:0}}
+  .demo.flash{box-shadow:0 0 0 3px var(--acc)}
+  kbd.me{background:var(--hl);border-color:var(--acc)}
+  #okbar{display:none;margin-top:14px;padding:12px 16px;border-radius:10px;background:#e7f6ec;color:#1f6b3d;font-size:15px}
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2a2620;color:#fff;padding:9px 16px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
 </style>
 </head>
@@ -72,10 +98,23 @@
       <a class="bm" id="bm" href="__BM_ATTR__">🎧 <span data-i="bmName"></span></a>
       <span class="arrow" data-i="drag"></span>
     </div>
-    <ol style="margin-top:16px">
-      <li data-i="i1a"></li>
+    <div class="demo" id="demo" aria-hidden="true">
+      <div class="tb"><i></i><i></i><i></i></div>
+      <div class="ad"><span>1220h.github.io/echo360-subtitle-follow</span></div>
+      <div class="bar"><span>📁 studying</span><span>📁 tools</span><div class="slot"></div><div class="got">🎧 <span data-i="bmName"></span></div></div>
+      <div class="lab" data-i="demoBar"></div>
+      <div class="pg"><div class="line"></div><div class="line" style="width:42%"></div></div>
+      <div class="btn">🎧 <span data-i="bmName"></span></div>
+      <div class="ghost">🎧 <span data-i="bmName"></span></div>
+      <svg class="cur" viewBox="0 0 24 24"><path d="M3 2 L3 19 L7.5 14.8 L10.6 21.5 L13.6 20.2 L10.6 13.6 L16.8 13.6 Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <div class="ok" data-i="demoOk"></div>
+    </div>
+    <ol style="margin-top:12px">
+      <li id="i1a"></li>
       <li data-i="i1b"></li>
+      <li data-i="i1c"></li>
     </ol>
+    <div id="okbar" data-i="installed"></div>
     <details>
       <summary data-i="manualT"></summary>
       <ol>
@@ -108,6 +147,7 @@
     <div class="tip" data-i="tSize"></div>
     <div class="tip" data-i="tRestore"></div>
     <div class="tip" data-i="tToggle"></div>
+    <div class="tip" data-i="tUpd"></div>
   </div>
 
   <details style="margin-top:30px">
@@ -126,11 +166,15 @@
       h1:'Subtitle Follow', sub:'A free bookmarklet for lecture recordings (made for Echo360, works with most HTML5 video players). One click opens a subtitle panel that scrolls with the video at any speed, translates the whole lecture (free, or with your own AI key), collects new words and exports a bilingual transcript.',
       mockVideo:'▶ Lecture video', mockTr:'(your translation appears here)',
       i1:'Install (once)', bmName:'Subtitle Follow', drag:'← drag this button onto your bookmarks bar',
-      i1a:'Show the bookmarks bar first: <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>B</kbd> on Mac, <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>B</kbd> on Windows.',
-      i1b:'Drag the red button onto the bar. Done.',
+      i1aMac:'Show the bookmarks bar: press <kbd class="me">⌘</kbd> <kbd class="me">⇧</kbd> <kbd class="me">B</kbd> (Windows: <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>B</kbd>).',
+      i1aWin:'Show the bookmarks bar: press <kbd class="me">Ctrl</kbd> <kbd class="me">Shift</kbd> <kbd class="me">B</kbd> (Mac: <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>B</kbd>).',
+      i1b:'<b>Press and hold</b> the red button and drag it onto the bar, like the animation above.',
+      i1c:'Check it: click the new bookmark right here on this page — you should see a green “installed” message.',
+      demoBar:'↑ bookmarks bar', demoOk:'✓ Installed',
+      installed:'✅ <b>Installed!</b> Now open a lecture on Echo360 and click the bookmark there. Later updates arrive through the ⬆ button in the panel — no need to drag it again.',
       manualT:'Can\'t drag it? Add it manually', manual1:'Click the button below to copy the code.',
       manual2:'<b>Chrome / Edge</b>: right-click the bookmarks bar → "Add page…", any name, paste the code as the URL.<br><b>Safari</b>: bookmark any page to Favorites, right-click it → "Edit Address", paste.',
-      copy:'Copy bookmarklet code', copied:'Copied', selectCopy:'Selected — press ⌘C / Ctrl+C', dragHint:'Drag it to the bookmarks bar instead of clicking',
+      copy:'Copy bookmarklet code', copied:'Copied', selectCopy:'Selected — press ⌘C / Ctrl+C', dragHint:'Don\'t click it — press and hold, then drag it onto the bookmarks bar (see the animation)',
       u:'Every lecture',
       u1:'Open a lecture on Echo360 and click <b>🎧 Subtitle Follow</b>. The subtitles <b>load automatically</b> — no downloading.',
       u2:'Click <b>🌐 Translate</b>, pick your language and press <b>Start</b> (tick <i>Translate automatically</i> to have every lecture translated as it opens). <b>Google Translate</b> is free and needs no setup; switch to <b>AI model</b> and paste your own API key (DeepSeek, OpenAI, Alibaba Cloud…) for much better terminology. Translations are cached, so each lecture is translated once.',
@@ -138,14 +182,14 @@
       u4:'<b>⤓ Export</b> a bilingual VTT, the whole lecture as a bilingual Markdown transcript, or your vocabulary. On other sites, load a VTT/SRT file with <b>📂</b> (or translate files with the <a href="translator.html">VTT Subtitle Translator</a>).',
       note:'💡 Free vs AI: Google translated <i>"treatment effect"</i> as 治疗效果 (medical treatment) and <i>"matching"</i> as 搭配 (outfit matching) in an econometrics lecture. An AI model, told it\'s an econometrics course, gets 处理效应 and 匹配. Captions are merged into full sentences before translating either way.',
       t:'Tips',
-      tOv:'<b>🎬 Subtitles on the video</b>Prefer movie-style subtitles? Click 🎬 and the current line (bilingual, translation only or original only) appears on top of the video, also in the player\'s full screen. Drag it to move, scroll on it to resize. Close the panel with ✕ and only the subtitles stay on screen. <b>▭</b> shrinks the panel to a slim subtitle bar showing just the current line; pop it out with 🪟 to park it anywhere.',
+      tOv:'<b>🎬 Subtitles on the video</b>Prefer movie-style subtitles? Click 🎬 and the current line (bilingual, translation only or original only) appears on top of the video, also in the player\'s full screen. Hover it for A− / A+ and Both / Translation only; drag it to move. Close the panel with ✕ and only the subtitles stay on screen. <b>▭</b> shrinks the panel to a slim subtitle bar showing just the current line; pop it out with 🪟 to park it anywhere.',
       tPip:'<b>🪟 Pop out (recommended)</b>Click "Pop out" and the subtitles move into a floating always-on-top window you can put anywhere, even on a second screen. Close it to dock the panel back. Chrome / Edge only.',
       tJump:'<b>Click a line to jump</b>The video seeks to that sentence — great for re-listening.',
       tScroll:'<b>Scroll freely</b>Scrolling pauses auto-follow for 4 seconds; "Back to now" returns instantly.',
       tOffset:'<b>Out of sync?</b>Nudge with −0.5s / +0.5s.',
       tSize:'<b>Move & resize</b>Drag the title bar, resize from the corner, A− / A+ for text size (remembered).',
       tRestore:'<b>Remembers each lecture</b>Reopen the same lecture and your subtitles load automatically.',
-      tToggle:'<b>Hide / show</b>Click the bookmark again.',
+      tToggle:'<b>Hide / show</b>Click the bookmark again.', tUpd:'<b>⬆ Updates</b>A red dot on ⬆ means a new version: one click updates, no need to re-drag the bookmark.',
       howT:'How it works / privacy',
       how:'The bookmark runs a script in the current page. It reads the video player\'s current time and highlights the matching subtitle line; on Echo360 it fetches the lesson\'s own transcript file with your existing login. Subtitles, translations, settings and your API key are stored only in this browser (local storage of the site you use it on). There is no server: text is sent only to the translation service you choose (Google Translate, or the AI API you enter).',
       footer:'Open source (MIT) · <a href="'+'__REPO_URL__'+'">GitHub</a> · Prefer subtitles on the video itself? Try <a href="https://github.com/bryanxianyu/echo360-online-subtitle-translator">Echo360 Online Subtitle Translator</a>.<br>Unofficial — not affiliated with or endorsed by Echo360.'
@@ -154,11 +198,15 @@
       h1:'字幕跟随', sub:'一个免费的书签小工具，给课程录播用（为 Echo360 做的，大多数 HTML5 视频播放器也能用）。点一下：字幕面板自动跟着视频滚动（倍速、拖进度都能跟上），整节课一键翻译（免费，或用自己的 AI Key），还能收藏生词、导出双语讲稿。',
       mockVideo:'▶ 课程视频', mockTr:'但这两组人在项目开始之前，可能就已经很不一样了。',
       i1:'安装（只需一次）', bmName:'字幕跟随', drag:'← 按住这个按钮，拖到浏览器的书签栏上',
-      i1a:'先显示书签栏：Mac 按 <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>B</kbd>，Windows 按 <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>B</kbd>。',
-      i1b:'把红色按钮拖进书签栏就装好了。',
+      i1aMac:'先打开书签栏：按 <kbd class="me">⌘</kbd> <kbd class="me">⇧</kbd> <kbd class="me">B</kbd>（Windows 是 <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>B</kbd>）。',
+      i1aWin:'先打开书签栏：按 <kbd class="me">Ctrl</kbd> <kbd class="me">Shift</kbd> <kbd class="me">B</kbd>（Mac 是 <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>B</kbd>）。',
+      i1b:'<b>按住</b>红色按钮不放，拖到书签栏上再松手，就像上面的动画。',
+      i1c:'检查一下：直接在这个页面点一下刚拖进去的书签，看到绿色的「安装成功」就对了。',
+      demoBar:'↑ 书签栏', demoOk:'✓ 安装好了',
+      installed:'✅ <b>安装成功！</b>现在去 Echo360 打开一节课，在那里点这个书签就能用。以后有新版本，点面板里的 ⬆ 就能更新，不用再拖一次。',
       manualT:'拖不动？手动添加', manual1:'点下面的按钮复制代码。',
       manual2:'<b>Chrome / Edge</b>：在书签栏上右键 →「添加网页…」，名称随便填，网址处粘贴。<br><b>Safari</b>：随便收藏一个网页到个人收藏，右键它 →「编辑地址」，粘贴替换。',
-      copy:'复制书签代码', copied:'已复制', selectCopy:'已选中，请按 ⌘C 复制', dragHint:'请把它拖到书签栏，而不是点击',
+      copy:'复制书签代码', copied:'已复制', selectCopy:'已选中，请按 ⌘C 复制', dragHint:'不要点它：按住不放，拖到书签栏上（看上面的动画）',
       u:'每节课这样用',
       u1:'在 Echo360 打开一节课，点书签栏上的 <b>🎧 字幕跟随</b>。字幕会<b>自动获取</b>，不用再手动下载。',
       u2:'稍等几秒，中文会<b>自动翻译</b>出来，直接显示成双语（默认用 <b>Google 免费翻译</b>，什么都不用设置，可以在 🌐 翻译 里关掉自动翻译）。想要更准，切换到 <b>AI 大模型</b> 并填上自己的 API Key（DeepSeek、阿里云百炼、OpenAI 等都行）。译文会缓存，每节课只需翻一次。',
@@ -166,19 +214,20 @@
       u4:'<b>⤓ 导出</b>：双语字幕 VTT、整节课的双语讲稿（Markdown），或者生词本。其他网站可以用 <b>📂</b> 载入 VTT / SRT 文件（也可以用 <a href="translator.html">VTT 字幕翻译器</a> 先翻译文件）。',
       note:'💡 免费和 AI 的差别：在一节计量经济学课里，Google 把 <i>treatment effect</i> 翻成了「治疗效果」，把 <i>matching</i> 翻成了「搭配」；AI 大模型知道这是计量课，会翻成「处理效应」和「匹配」。两种方式都会先把碎片字幕合并成整句再翻译。',
       t:'小技巧',
-      tOv:'<b>🎬 字幕叠在视频上</b>更喜欢看电影那样的字幕？点 🎬，当前这句（双语、仅译文或仅原文）会直接显示在视频画面上，播放器全屏时也有。拖动字幕可以调位置，在字幕上滚动滚轮可以调大小。再点 ✕ 关掉面板，屏幕上就只剩字幕。<b>▭</b> 能把面板缩成一条只显示当前这句的字幕条，配合 🪟 可以放到屏幕任何位置。',
+      tOv:'<b>🎬 字幕叠在视频上</b>更喜欢看电影那样的字幕？点 🎬，当前这句（双语、仅译文或仅原文）会直接显示在视频画面上，播放器全屏时也有。鼠标移到字幕上可以用 A− / A+ 调大小、切换双语 / 仅译文；拖动字幕可以调位置。再点 ✕ 关掉面板，屏幕上就只剩字幕。<b>▭</b> 能把面板缩成一条只显示当前这句的字幕条，配合 🪟 可以放到屏幕任何位置。',
       tPip:'<b>🪟 独立窗口（推荐）</b>点「独立窗口」，字幕会变成一个置顶小窗，可以拖到屏幕任意位置或副屏，不挡视频。关掉小窗面板就回到网页里。需要 Chrome 或 Edge。',
       tJump:'<b>点句子 = 跳转</b>点面板里任意一句，视频跳到那里，适合回听没听懂的地方。',
       tScroll:'<b>往回翻不打架</b>滚轮往回翻时自动跟随暂停 4 秒；点「回到当前」立刻回来。',
       tOffset:'<b>字幕早了或晚了</b>用 −0.5s / +0.5s 微调。',
       tSize:'<b>位置和大小</b>拖标题栏移动，拖右下角改大小，A− / A+ 调字号（会记住）。',
       tRestore:'<b>下次自动恢复</b>同一节课再打开，点书签会自动载入上次的字幕。',
-      tToggle:'<b>隐藏 / 显示</b>再点一次书签。',
+      tToggle:'<b>隐藏 / 显示</b>再点一次书签。', tUpd:'<b>⬆ 一键更新</b>⬆ 亮红点就是有新版本，点一下自动更新，不用重新拖书签。',
       howT:'它是怎么工作的 / 隐私',
       how:'书签会在当前网页里运行一段脚本：读取视频播放器的当前时间，高亮对应的字幕；在 Echo360 上，它用你已登录的身份获取这节课自带的字幕文件。字幕、译文、设置和 API Key 只保存在这个浏览器里（所在网站的本地存储）。没有任何服务器：文本只会发送给你选择的翻译服务（Google 翻译，或你填写的 AI 接口）。',
       footer:'开源（MIT）· <a href="'+'__REPO_URL__'+'">GitHub</a> · 更喜欢字幕直接叠在视频上？可以试试 <a href="https://github.com/bryanxianyu/echo360-online-subtitle-translator">Echo360 Online Subtitle Translator</a>。<br>非官方工具，与 Echo360 无关'
     }
   };
+  var IS_MAC = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '');
   var lang; try { lang = localStorage.getItem('sf:ui'); } catch(e) {}
   if (!lang) lang = /^zh/i.test(navigator.language||'') ? 'zh' : 'en';
   var L;
@@ -186,12 +235,27 @@
     L = I18N[lang]; document.documentElement.lang = lang==='zh'?'zh-CN':'en';
     document.getElementById('lang').value = lang;
     [].forEach.call(document.querySelectorAll('[data-i]'), function(el){ el.innerHTML = L[el.getAttribute('data-i')]; });
+    document.getElementById('i1a').innerHTML = IS_MAC ? L.i1aMac : L.i1aWin;
   }
   document.getElementById('lang').addEventListener('change', function(){ lang=this.value; try{localStorage.setItem('sf:ui',lang);}catch(e){} applyLang(); });
   applyLang();
 
   function toast(t){var e=document.getElementById('toast');e.textContent=t;e.style.opacity=1;clearTimeout(e._t);e._t=setTimeout(function(){e.style.opacity=0},2200);}
-  document.getElementById('bm').addEventListener('click', function(e){ e.preventDefault(); toast(L.dragHint); });
+  // Clicking instead of dragging: replay the animation from the start and point at it.
+  document.getElementById('bm').addEventListener('click', function(e){
+    e.preventDefault(); toast(L.dragHint);
+    var d = document.getElementById('demo'), c = d.cloneNode(true); c.classList.add('flash');
+    d.parentNode.replaceChild(c, d); applyLang();
+    setTimeout(function(){ c.classList.remove('flash'); }, 1600);
+  });
+  // Install check: clicking the new bookmark on this page opens the panel here -> hide it, say it worked.
+  setInterval(function(){
+    var p = window.__subsyncPanel || document.getElementById('subsync-panel');
+    if (!p || p.__sfSeen) return;
+    p.__sfSeen = true; p.style.display = 'none';
+    var ov = document.getElementById('subsync-ov'); if (ov) ov.style.display = 'none';
+    var ok = document.getElementById('okbar'); ok.style.display = 'block'; ok.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 400);
   document.getElementById('copy').addEventListener('click', function(){
     var ta=document.getElementById('code'); ta.value=BM; ta.style.display='block';
     function fallback(){ ta.focus(); ta.select(); try{ if(document.execCommand('copy')) {toast(L.copied);return;} }catch(e){} toast(L.selectCopy); }
